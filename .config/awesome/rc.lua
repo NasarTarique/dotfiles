@@ -11,6 +11,7 @@ local wibox = require("wibox")
 -- Theme handling library
 local beautiful = require("beautiful")
 -- Notification library
+local lain = require("lain")
 local naughty = require("naughty")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
@@ -54,6 +55,7 @@ beautiful.wallpaper  = "~/Pictures/nitrogen/ac-de-leon--uWiIajRN0s-unsplash.jpg"
 
 
 -- Pulse Audio
+local APW = require("apw/widget")
 -- This is used later as the default terminal and editor to run.
 terminal = "x-terminal-emulator"
 editor = os.getenv("nvim") or "nano"
@@ -225,7 +227,7 @@ awful.screen.connect_for_each_screen(function(s)
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
             mylauncher,
-            s.mytaglist,
+            --s.mytaglist,
             s.mypromptbox,
         },
         s.mytasklist, -- Middle widget
@@ -234,7 +236,9 @@ awful.screen.connect_for_each_screen(function(s)
             mykeyboardlayout,
             wibox.widget.systray(),
             mytextclock,
-            s.mylayoutbox,
+            s.mytaglist,
+			APW,
+            --s.mylayoutbox,
         },
     }
 end)
@@ -331,6 +335,38 @@ globalkeys = gears.table.join(
               end,
               {description = "restore minimized", group = "client"}),
 
+    -- Pulse Audio
+	awful.key({ }, "XF86AudioRaiseVolume",  APW.Up),
+	awful.key({ }, "XF86AudioLowerVolume",  APW.Down),
+	awful.key({ }, "XF86AudioMute",         APW.ToggleMute),
+	-- Screen shot
+	awful.key({  }, "Print", function()
+			awful.spawn.with_shell("xfce4-screenshooter")
+	end,
+		{description="screenshot", group="hotkeys"}),
+    -- Brightness
+    awful.key({ }, "XF86MonBrightnessUp", function () 
+				local brightness =  "xfpm-power-backlight-helper --get-brightness"	
+				local setbrightness =  "pkexec xfpm-power-backlight-helper --set-brightness "	
+				awful.spawn.easy_async(brightness, function(stdout)
+						setbrightness = setbrightness .. tostring(tonumber(stdout) + 30)  
+						awful.spawn.easy_async(setbrightness, function()
+								naughty.notify{text=tostring(tonumber(stdout) + 30)}
+						end)
+				end)
+		end,
+              {description = "+10%", group = "hotkeys"}),
+    awful.key({ }, "XF86MonBrightnessDown", function () 
+				local brightness =  "xfpm-power-backlight-helper --get-brightness"	
+				local setbrightness =  "pkexec xfpm-power-backlight-helper --set-brightness "	
+				awful.spawn.easy_async(brightness, function(stdout)
+						setbrightness = setbrightness .. tostring(tonumber(stdout) - 30)  
+						awful.spawn.easy_async(setbrightness, function()
+								naughty.notify{text=tostring(tonumber(stdout) - 30)}
+						end)
+				end)
+	end,
+              {description = "-10%", group = "hotkeys"}),
     -- Prompt
     awful.key({ modkey },            "r",     function () awful.spawn.with_shell("dmenu_run") end,
               {description = "run prompt", group = "launcher"}),
@@ -585,3 +621,7 @@ end)
 		-- }}}
 		awful.spawn.with_shell("compton")
 		beautiful.useless_gap =5
+		awful.spawn.with_shell("blueman-applet")
+		awful.spawn.with_shell("nm-applet")
+		awful.spawn.with_shell("nitrogen --restore")
+
