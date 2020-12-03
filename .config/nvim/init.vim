@@ -20,7 +20,6 @@ set guicursor=
 
 source $HOME/.config/nvim/vim-plug/plugins.vim
 
-autocmd vimenter * NERDTree
 colo palenight
 
 let python_higlight_all=1
@@ -30,14 +29,21 @@ let g:virtualenv_directory = '~/.virtualenvs'
 let g:gruvbox_transparent_bg=1
 let g:airline_theme='palenight'
 let g:palenight_terminal_italics=1
-let g:vim_jsx_pretty_colorful_config = 1 
-
+let g:vim_jsx_pretty_colorful_config = 1
+let g:vimwiki_table_mappings = 0
+let g:vimwiki_global_ext = 0
 
 nnoremap <leader>h :wincmd h<CR>
 nnoremap <leader>j :wincmd j<CR>
 nnoremap <leader>k :wincmd k<CR>
 nnoremap <leader>l :wincmd l<CR>
+nnoremap <leader>zg :Goyo <CR>
+nnoremap <leader>t :sp <bar> res20 <bar> term <CR>
+nnoremap <leader>su :source ~/.config/nvim/init.vim <CR>
 tnoremap <esc><esc>	<c-\><c-n>
+nnoremap <leader>\ :r !date <CR>
+nnoremap <leader>; :NERDTree <CR>
+nnoremap <leader>f :FZF <CR>
 
 " Tabs
 let g:airline#extensions#tabline#enabled = 1
@@ -86,9 +92,29 @@ if (has("termguicolors"))
   set termguicolors
 endif
 
+" C++ Syntax highlighting=
+let g:cpp_class_scope_highlight = 1
+let g:cpp_member_variable_highlight = 1
+let g:cpp_class_decl_highlight = 1
+let c_no_curly_error=1
+"=================================================================
 
 hi  Normal guibg=NONE ctermbg=NONE
+"
+"Java Syntax highlighting
+let java_highlight_functions = 1
+let java_highlight_all = 1
 
+highlight link javaScopeDecl Statement
+highlight link javaType Type
+highlight link javaDocTags PreProc
 
+" Markdown
+nnoremap <leader>md :!zathura '%:r'.pdf & <CR>
+nnoremap <leader>mc :! pandoc -o '%:r'.pdf '%' <CR>
+
+" VIM WIKI
+let g:vimwiki_list = [{'path': '~/vimwiki/',
+                      \ 'syntax': 'markdown', 'ext': '.md'}]
 " AUTOCOMPLETION
 autocmd FileType css set omnifunc=csscomplete#CompleteCSS

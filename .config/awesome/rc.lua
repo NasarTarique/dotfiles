@@ -18,7 +18,8 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
-
+naughty.config.defaults.icon_size = 100
+beautiful.notification_bg = "#000000AA"
 -- Load Debian menu entries
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
@@ -50,14 +51,25 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
-beautiful.wallpaper  = "~/Pictures/nitrogen/ac-de-leon--uWiIajRN0s-unsplash.jpg"
+--beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
+--""
+beautiful.init("~/.config/awesome/themes/copland/theme.lua")
 
-
+local todo_widget  = require("awesome-wm-widgets.todo-widget.todo")
+local calwidget  = require("awesome-wm-widgets.calendar-widget.calendar")
+local separatewidget  = wibox.widget{
+    markup = '  ',
+    align  = 'center',
+    valign = 'center',
+    widget = wibox.widget.textbox
+}
 -- Pulse Audio
-local APW = require("apw/widget")
+--local APW = require("apw/widget")
+local volarc = require("awesome-wm-widgets.volumearc-widget.volumearc")
+-- Spotify
+local spotify_widget = require("awesome-wm-widgets.spotify-widget.spotify")
 -- This is used later as the default terminal and editor to run.
-terminal = "x-terminal-emulator"
+terminal = "alacritty"
 editor = os.getenv("nvim") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -70,22 +82,23 @@ modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    --awful.layout.suit.floating,
     awful.layout.suit.tile,
-    --awful.layout.suit.tile.left,
-    --awful.layout.suit.tile.bottom,
-    --awful.layout.suit.tile.top,
-    --awful.layout.suit.fair,
-    --awful.layout.suit.fair.horizontal,
-    --awful.layout.suit.spiral,
-    --awful.layout.suit.spiral.dwindle,
-    --awful.layout.suit.max,
-    --awful.layout.suit.max.fullscreen,
-    --awful.layout.suit.magnifier,
-    --awful.layout.suit.corner.nw,
-    -- awful.layout.suit.corner.ne,
-    -- awful.layout.suit.corner.sw,
-    -- awful.layout.suit.corner.se,
+    awful.layout.suit.floating,
+    --awful.layout.suit.tile,
+    awful.layout.suit.tile.left,
+    awful.layout.suit.tile.bottom,
+    awful.layout.suit.tile.top,
+    awful.layout.suit.fair,
+    awful.layout.suit.fair.horizontal,
+    awful.layout.suit.spiral,
+    awful.layout.suit.spiral.dwindle,
+    awful.layout.suit.max,
+    awful.layout.suit.max.fullscreen,
+    awful.layout.suit.magnifier,
+    awful.layout.suit.corner.nw,
+    awful.layout.suit.corner.ne,
+    awful.layout.suit.corner.sw,
+    awful.layout.suit.corner.se,
 }
 -- }}}
 
@@ -185,14 +198,16 @@ local function set_wallpaper(s)
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
-screen.connect_signal("property::geometry", set_wallpaper)
+--screen.connect_signal("property::geometry", set_wallpaper)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
     set_wallpaper(s)
-
+	-- systray
+    s.systray = wibox.widget.systray()
+    s.systray.visible = false
     -- Each screen has its own tag table.
-    awful.tag({ "1", "2", "3", "4", "5" }, s, awful.layout.layouts[1])
+    awful.tag({ "1", "2", "3", "4", "5","6","7"}, s, awful.layout.layouts[1])
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
@@ -217,28 +232,52 @@ awful.screen.connect_for_each_screen(function(s)
         filter  = awful.widget.tasklist.filter.currenttags,
         buttons = tasklist_buttons
     }
+	--beautiful.tasklist_bg_normal = "#80000000"
+	--beautiful.tasklist_bg_focus = "99"
 
     -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s })
-
+    s.mywibox = awful.wibar({ position = "top", screen = s, height =25
+})
+--	beautiful.bg_systray = "#050A30"
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
+		expand ="none",
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
             mylauncher,
-            --s.mytaglist,
-            s.mypromptbox,
-        },
-        s.mytasklist, -- Middle widget
-        { -- Right widgets
-            layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
-            wibox.widget.systray(),
-            mytextclock,
             s.mytaglist,
-			APW,
-            --s.mylayoutbox,
+			separatewidget,
+            s.mypromptbox,
+		s.mytasklist, -- Middle widget
+        },
+		{
+            layout = wibox.layout.fixed.horizontal,
+            mytextclock,
+
+		},
+        { -- Right widgets
+		    spotify_widget({
+				font = 'Ubuntu Mono 9',
+				dim_when_paused = true,
+				dim_opacity = 0.5,
+				max_length = -1,
+				show_tooltip = false
+				}),
+			separatewidget,
+			todo_widget(),
+			separatewidget,
+				volarc({
+				    main_color = '#af13f7',
+				    mute_color = '#ff0000',
+				    thickness = 5,
+				    height = 25,
+				}),
+			separatewidget,
+            layout = wibox.layout.fixed.horizontal,
+			s.systray,
+            mykeyboardlayout,
+            s.mylayoutbox,
         },
     }
 end)
@@ -336,9 +375,37 @@ globalkeys = gears.table.join(
               {description = "restore minimized", group = "client"}),
 
     -- Pulse Audio
-	awful.key({ }, "XF86AudioRaiseVolume",  APW.Up),
-	awful.key({ }, "XF86AudioLowerVolume",  APW.Down),
-	awful.key({ }, "XF86AudioMute",         APW.ToggleMute),
+	awful.key({ }, "XF86AudioRaiseVolume",  function()
+			awful.spawn.with_shell("amixer -D pulse sset Master 5%+" )
+				end
+				),
+	awful.key({ }, "XF86AudioLowerVolume",  function()
+			awful.spawn.with_shell("amixer -D pulse sset Master 5%-" )
+				end
+				),
+	awful.key({ }, "XF86AudioMute",  function()
+			awful.spawn.with_shell("amixer -D pulse sset Master toggle" )
+				end
+				),
+    --  notification
+	awful.key({ modkey, }, "\\", naughty.destroy_all_notifications,
+		{description = "clear notifications", group = "awesome"}),
+	-- {{{ Spotify
+    awful.key({ },"XF86AudioPlay",function()
+			awful.spawn.with_shell("sp play")
+	end,
+		{description="spotifyPlayPause", group="hotkeys"}),
+
+    awful.key({ },"XF86AudioPrev",function()
+			awful.spawn.with_shell("sp prev")
+	end,
+		{description="spotify previous", group="hotkeys"}),
+
+    awful.key({ },"XF86AudioNext",function()
+			awful.spawn.with_shell("sp next")
+	end,
+		{description="spotify next", group="hotkeys"}),
+    -- }}}
 	-- Screen shot
 	awful.key({  }, "Print", function()
 			awful.spawn.with_shell("xfce4-screenshooter")
@@ -368,8 +435,11 @@ globalkeys = gears.table.join(
 	end,
               {description = "-10%", group = "hotkeys"}),
     -- Prompt
-    awful.key({ modkey },            "r",     function () awful.spawn.with_shell("dmenu_run") end,
+    awful.key({ modkey },            "r",     function () awful.spawn.with_shell("xfce4-appfinder") end,
               {description = "run prompt", group = "launcher"}),
+
+    awful.key({  modkey },        "d",     function () awful.spawn.with_shell("rofi -show window") end,
+              {description = "show windows", group = "launcher"}),
 
     awful.key({ modkey }, "x",
               function ()
@@ -381,6 +451,11 @@ globalkeys = gears.table.join(
                   }
               end,
               {description = "lua execute prompt", group = "awesome"}),
+
+    awful.key({ modkey }, "=", function ()
+        awful.screen.focused().systray.visible = not awful.screen.focused().systray.visible
+        end, {description = "Toggle systray visibility", group = "custom"})
+    ,
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end,
               {description = "show the menubar", group = "launcher"})
@@ -612,7 +687,7 @@ end)
 		end)
 
 		-- Enable sloppy focus, so that focus follows mouse.
-		client.connect_signal("mouse::enter", function(c)
+		client.connect_signal("mouse::click", function(c)
 			c:emit_signal("request::activate", "mouse_enter", {raise = false})
 		end)
 
@@ -623,5 +698,5 @@ end)
 		beautiful.useless_gap =5
 		awful.spawn.with_shell("blueman-applet")
 		awful.spawn.with_shell("nm-applet")
-		awful.spawn.with_shell("nitrogen --restore")
+		awful.spawn.with_shell("feh  --bg-fill --randomize /home/huma/Pictures/nitrogen")
 

@@ -13,11 +13,13 @@ Plug 'vim-airline/vim-airline-themes'
 
 " Python 
 Plug 'jmcantrell/vim-virtualenv'
-Plug 'turbio/bracey.vim'
 Plug 'vim-scripts/indentpython.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'nvie/vim-flake8'
 
+"C++
+Plug 'octol/vim-cpp-enhanced-highlight'
+"
 " Web Dev
 Plug 'mattn/emmet-vim'
 Plug 'pangloss/vim-javascript'
@@ -29,12 +31,15 @@ Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'airblade/vim-rooter'
 
+"vim markdown
+Plug 'vimwiki/vimwiki'
+
 Plug 'preservim/nerdtree'
 Plug 'tpope/vim-fugitive'
 Plug 'chrisbra/vim-commentary'
 Plug 'jiangmiao/auto-pairs'
+Plug 'junegunn/goyo.vim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 call plug#end()
-
 
